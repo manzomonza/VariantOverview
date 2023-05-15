@@ -103,8 +103,8 @@ snv_read = function(filepath){
 
 ## Aggregate file comparisons by directory structure
 ```{r}
-# diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
-# diroi = getwd()
+ diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
+#diroi = getwd()
 preps = list.files(path = diroi, pattern = "prep_snv.txt", recursive = TRUE, full.names = TRUE)
 
 ```
@@ -172,7 +172,7 @@ count_variants = dplyr::group_by(compl,uid) %>%
 
 ```{r, include=FALSE}
 variants_parameters = dplyr::left_join(count_variants, compl) %>%
-  dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus,homopolymer_length:coverage, pcr_id,Bno )
+  dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus,homopolymer_length:coverage, pcr_id.x, Bno.x)
 
 readr::write_tsv(count_variants, paste0(diroi,"/Counted_variants.tsv"))
 readr::write_tsv(variants_parameters, paste0(diroi,"/variants_parameters.tsv"))
