@@ -172,6 +172,10 @@ comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
 ```{r, include=FALSE}
 # detailed exports
 tifs = lapply(preps, read_input_tsv)
+```
+
+
+```{r, include=FALSE}
 tifs = lapply(tifs, function(x) x %>% dplyr::mutate_all(as.character))
 tifs = dplyr::bind_rows(tifs)
 ```
