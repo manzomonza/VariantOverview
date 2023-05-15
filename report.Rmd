@@ -103,7 +103,7 @@ snv_read = function(filepath){
 
 ## Aggregate file comparisons by directory structure
 ```{r}
- diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
+#diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
 #diroi = getwd()
 preps = list.files(path = diroi, pattern = "prep_snv.txt", recursive = TRUE, full.names = TRUE)
 
