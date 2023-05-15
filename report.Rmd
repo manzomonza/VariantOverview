@@ -98,7 +98,6 @@ snv_read = function(filepath){
   return(foi)
 }
 
-##### IGV coordinates
 
 ```
 
@@ -129,37 +128,6 @@ read_input_tsv = function(prep_snvs){
 
 ```
 
-
-```{r, eval=FALSE}
-return_discordant_variant_coordinates =  function(snv_path_1,snv_path_2){
-  complete_table = variant_complete_table(snv_path_1, snv_path_2)
-  subset_table = variant_subset_table(complete_table)
-  subset_table = subset_table$subset_table
-  if(is.na(subset_table)){
-    return(NA)
-  }
-  subset_table_ls = dplyr::group_by(subset_table, name) %>% dplyr::group_split()
-  f1 = snv_read(snv_path_1)
-  f2 = snv_read(snv_path_2)
-  if(length(subset_table_ls)>1){
-    if(is.na(subset_table_ls[[1]])){
-      list_1 = NA
-    }else{
-      list_1 = return_discordant_coordinates(f1, subset_table_ls[[1]])
-    }
-    if(is.na(subset_table_ls[[2]])){
-      list_2 = NA
-    }else{
-      list_2 = return_discordant_coordinates(f2, subset_table_ls[[2]])  
-    }
-      return(dplyr::bind_rows(list_1, list_2))
-  }else{
-     list_1 = return_discordant_coordinates(f1, subset_table_ls[[1]])
-     return(list_1)
-  }
-}
-```
-
 ## Loop over all entries
 ```{r}
 complete_list = list()
@@ -186,10 +154,9 @@ comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
 
 ```
 
-
 ```{r}
 # detailed exports
-compl = dplyr::left_join(complete_table, dplyr::bind_rows(tifs),by = c('uid','name'))
+compl = dplyr::left_join(comp_tbl, dplyr::bind_rows(tifs),by = c('uid','name'))
 readr::write_tsv(compl, paste0(diroi,"/Complete_variant_list_filename.tsv"))
 
 count_variants = dplyr::group_by(compl,uid) %>%
