@@ -103,8 +103,8 @@ snv_read = function(filepath){
 
 ## Aggregate file comparisons by directory structure
 ```{r}
-#diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
-#diroi = getwd()
+# diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
+# diroi = getwd()
 preps = list.files(path = diroi, pattern = "prep_snv.txt", recursive = TRUE, full.names = TRUE)
 
 ```
@@ -141,10 +141,7 @@ for (i in seq_along(preps)){
 }
 ```
 
-## Add variant metrics
-```{r, include=FALSE}
-tifs = lapply(preps, read_input_tsv)
-```
+
 
 ##  
 ```{r}
@@ -154,9 +151,14 @@ param_df = extract_parameters_from_dirname(complete_table$name)
 comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
 ```
 
-```{r}
+## Add variant metrics
+```{r, include=FALSE}
 # detailed exports
-compl = dplyr::left_join(comp_tbl, dplyr::bind_rows(tifs),by = c('uid','name'))
+tifs = lapply(preps, read_input_tsv)
+tifs = lapply(tifs, function(x) x %>% dplyr::mutate_all(as.character))
+tifs = dplyr::bind_rows(tifs)
+
+compl = dplyr::left_join(comp_tbl, tifs,by = c('uid','name'))
 readr::write_tsv(compl, paste0(diroi,"/Complete_variant_list_filename.tsv"))
 
 count_variants = dplyr::group_by(compl,uid) %>%
