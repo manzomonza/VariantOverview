@@ -15,7 +15,7 @@ html_filename = paste0(opt$dir, "/validation_report.html")
 #                   params = list(diroi = opt$dir),
 #                   output_file = html_filename)
 
-rmarkdown::render('/home/ionadmin/github_app/workflow_validation/report.Rmd',
+rmarkdown::render('/home/ionadmin/github_app/VariantOverview/report.Rmd',
                   params = list(diroi = opt$dir),
                   output_file = html_filename)
 
