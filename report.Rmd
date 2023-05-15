@@ -103,7 +103,8 @@ snv_read = function(filepath){
 
 ## Aggregate file comparisons by directory structure
 ```{r}
-diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
+#diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
+#diroi = getwd()
 preps = list.files(path = diroi, pattern = "prep_snv.txt", recursive = TRUE, full.names = TRUE)
 
 ```
@@ -151,7 +152,6 @@ complete_tbl = dplyr::bind_rows(complete_list)
 complete_table = add_coordinates(complete_tbl)
 param_df = extract_parameters_from_dirname(complete_table$name)
 comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
-
 ```
 
 ```{r}
