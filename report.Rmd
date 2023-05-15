@@ -191,8 +191,12 @@ count_variants = dplyr::group_by(comp_tbl,uid) %>%
   dplyr::filter(n>1)
 ```
 
+```{r}
+DT::datatable(count_variants)
+```
 
-```{r, eval=FALSE}
+
+```{r, include=FALSE}
 variants_parameters = dplyr::left_join(count_variants, comp_tbl) %>%
   dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus,homopolymer_length:coverage, pcr_id.x, Bno.x)
 
