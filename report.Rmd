@@ -119,7 +119,7 @@ read_input_tsv = function(prep_snvs){
     tsv_file = readr::read_tsv(tsvs, comment = "##") %>% janitor::clean_names()
     toi = tsv_file %>%
     tidyr::unite(col = 'uid', c(genes,coding,amino_acid_change,locus), remove = FALSE, sep = "__") %>%
-    dplyr::select(uid, homopolymer_length,ref_ref_var_var,phred_qual_score,ucsc_common_sn_ps)
+    dplyr::select(uid, homopolymer_length,ref_ref_var_var,phred_qual_score,coverage,ucsc_common_sn_ps)
       toi$name = base_name
       extract_tif = extract_parameters_from_dirname(toi$name)
       tiffo = dplyr::left_join(toi, extract_tif) %>% dplyr::distinct()
