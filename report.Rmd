@@ -197,7 +197,7 @@ DT::datatable(count_variants)
 
 
 ```{r, include=FALSE}
-variants_parameters = dplyr::left_join(count_variants, comp_tbl) %>%
+variants_parameters = dplyr::left_join(count_variants, compl) %>%
   dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus, homopolymer_length,ref_ref_var_var,phred_qual_score,coverage,ucsc_common_sn_ps, pcr_id.x, Bno.x)
 
 readr::write_tsv(count_variants, paste0(diroi,"/Counted_variants.tsv"))
