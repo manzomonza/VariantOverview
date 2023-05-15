@@ -146,9 +146,25 @@ for (i in seq_along(preps)){
 ##  
 ```{r}
 complete_list = lapply(complete_list, function(x) x %>% dplyr::mutate_all(as.character))
+```
+
+
+```{r}
 complete_tbl = dplyr::bind_rows(complete_list)
+```
+
+
+```{r}
 complete_table = add_coordinates(complete_tbl)
+```
+
+
+```{r}
 param_df = extract_parameters_from_dirname(complete_table$name)
+```
+
+
+```{r}
 comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
 ```
 
