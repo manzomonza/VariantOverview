@@ -191,15 +191,18 @@ count_variants = dplyr::group_by(comp_tbl,uid) %>%
   dplyr::filter(n>1)
 ```
 
-```{r}
-DT::datatable(count_variants)
-```
+
 
 
 ```{r, include=FALSE}
 variants_parameters = dplyr::left_join(count_variants, compl) %>%
-  dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus, homopolymer_length,ref_ref_var_var,phred_qual_score,coverage,ucsc_common_sn_ps, pcr_id.x, Bno.x)
+  dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus, homopolymer_length,ref_ref_var_var,phred_qual_score,coverage,ucsc_common_sn_ps, pcr_id.y, Bno.y)
+```
+```{r}
+DT::datatable(variants_parameters)
+```
 
+```{r, include=FALSE}
 readr::write_tsv(count_variants, paste0(diroi,"/Counted_variants.tsv"))
 readr::write_tsv(variants_parameters, paste0(diroi,"/variants_parameters.tsv"))
 ```
