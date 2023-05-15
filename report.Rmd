@@ -157,14 +157,20 @@ comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
 tifs = lapply(preps, read_input_tsv)
 tifs = lapply(tifs, function(x) x %>% dplyr::mutate_all(as.character))
 tifs = dplyr::bind_rows(tifs)
+```
 
+
+```{r, include=FALSE}
 compl = dplyr::left_join(comp_tbl, tifs,by = c('uid','name'))
 readr::write_tsv(compl, paste0(diroi,"/Complete_variant_list_filename.tsv"))
 
 count_variants = dplyr::group_by(compl,uid) %>%
   dplyr::count(sort = TRUE) %>%
   dplyr::filter(n>1)
+```
 
+
+```{r, include=FALSE}
 variants_parameters = dplyr::left_join(count_variants, compl) %>%
   dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus,homopolymer_length:coverage, pcr_id,Bno )
 
