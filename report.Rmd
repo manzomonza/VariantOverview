@@ -1,0 +1,204 @@
+---
+title: "Workflow validation"
+author: "Molecular Diagnostic Unit -- University Hospital Basel"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+params:
+  diroi: ''
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r comparisons, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(magrittr)
+diroi = params$diroi
+```
+
+
+```{r function, include=FALSE}
+## FUNCTIONS
+extract_parameters_from_dirname = function(watchdog_dirpath){
+  mod_path = gsub("-",'_',watchdog_dirpath)
+  rec = stringr::str_split(mod_path, pattern ="_", simplify = FALSE)[[1]]
+  rec = rec[1:4]
+  parameters = data.frame(name = watchdog_dirpath,
+                            pcr_id = rec[1],
+                            Bno = rec[2],
+                          panel = rec[3],
+                          wf_version = rec[4])
+  return(parameters)
+}
+
+dload_DT = function(data_table){
+  data_table %>%
+  DT::datatable(extensions = 'Buttons',
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(25,50,-1),
+                                             c(25,50,"All"))))
+}
+extract_chr = function(locusstring){
+  chr = stringr::str_extract(locusstring, pattern = 'chr.+?(?=:)')
+  return(chr)
+}
+ 
+extract_start = function(locusstring){
+  start = stringr::str_extract(locusstring, pattern = '(?<=chr.{1,2}:)\\d+')
+  start = as.numeric(start)
+return(start)
+}
+
+return_discordant_coordinates = function(input_file, subset_table){
+  toi = subset(input_file, uid %in% subset_table$uid)
+  toi = dplyr::select(toi, locus, filepath)
+  toi$chr = extract_chr(toi$locus)
+  toi$start = extract_start(toi$locus)
+  toi$end = extract_start(toi$locus)
+  toi = dplyr::relocate(toi, chr, start, end)
+  toi = dplyr::select(toi, -locus)
+  return(toi)
+}
+join_parameters_and_res = function(results_table){
+  results_table = dplyr::filter(results_table, !is.na(value))
+  parameters = dplyr::bind_rows(lapply(results_table$name, extract_parameters_from_dirname))
+  joined_table = dplyr::left_join(results_table, parameters) 
+  joined_table = dplyr::distinct(joined_table)
+  return(joined_table)
+}
+count_variant_wf_version = function(parameter_table){
+  parameter_table = dplyr::select(parameter_table,-name,-locus) %>%
+  dplyr::group_by(chr, start, end,gene,coding,amino_acid_change,wf_version) %>%
+  dplyr::count(sort = TRUE) %>%
+  tidyr::pivot_wider(names_from = wf_version,
+                     values_from = n)
+  return(parameter_table)
+}
+
+remove_na_entries = function(res_list){
+  res_table = dplyr::bind_rows(res_list[!is.na(res_list)])
+  return(res_table)
+}
+
+add_coordinates = function(res_table){
+  res_table = tidyr::separate(res_table, col = 'uid', into = c('gene','coding','amino_acid_change','locus'),sep = "__", remove = FALSE)
+  res_table$chr = extract_chr(res_table$locus)
+  res_table$end = extract_start(res_table$locus)
+  res_table$start = extract_start(res_table$locus)
+  res_table = dplyr::relocate(res_table, chr, start, end)
+  return(res_table)
+}
+snv_read = function(filepath){
+  foi = readr::read_tsv(filepath)
+  foi = tidyr::unite(foi, col = 'uid', c(gene,coding,amino_acid_change,locus), remove = FALSE, sep = "__")
+  foi$filepath = filepath
+  foi = dplyr::relocate(foi, percent_frequency)
+  base_name = basename(dirname(unique(foi$filepath)))
+  foi$name = base_name
+  return(foi)
+}
+
+##### IGV coordinates
+
+```
+
+## Aggregate file comparisons by directory structure
+```{r}
+diroi = paste0('/Users/manzo/USB/USB_Diagnostics/workflow_validation/', "/OCAPlus")
+preps = list.files(path = diroi, pattern = "prep_snv.txt", recursive = TRUE, full.names = TRUE)
+
+```
+
+
+```{r, include=TRUE}
+read_input_tsv = function(prep_snvs){
+  dir_name = dirname(prep_snvs)
+  tsvs = list.files(path = dir_name, pattern = ".*.tsv", full.names = TRUE)
+  base_name = basename(dir_name)
+  if(length(tsvs) == 1){
+    tsv_file = readr::read_tsv(tsvs, comment = "##") %>% janitor::clean_names()
+    toi = tsv_file %>%
+    tidyr::unite(col = 'uid', c(genes,coding,amino_acid_change,locus), remove = FALSE, sep = "__") %>%
+    dplyr::select(uid, homopolymer_length:ucsc_common_sn_ps)
+  }
+  toi$name = base_name
+  extract_tif = extract_parameters_from_dirname(toi$name)
+  tiffo = dplyr::left_join(toi, extract_tif) %>% dplyr::distinct()
+  return(tiffo)
+}
+
+```
+
+
+```{r, eval=FALSE}
+return_discordant_variant_coordinates =  function(snv_path_1,snv_path_2){
+  complete_table = variant_complete_table(snv_path_1, snv_path_2)
+  subset_table = variant_subset_table(complete_table)
+  subset_table = subset_table$subset_table
+  if(is.na(subset_table)){
+    return(NA)
+  }
+  subset_table_ls = dplyr::group_by(subset_table, name) %>% dplyr::group_split()
+  f1 = snv_read(snv_path_1)
+  f2 = snv_read(snv_path_2)
+  if(length(subset_table_ls)>1){
+    if(is.na(subset_table_ls[[1]])){
+      list_1 = NA
+    }else{
+      list_1 = return_discordant_coordinates(f1, subset_table_ls[[1]])
+    }
+    if(is.na(subset_table_ls[[2]])){
+      list_2 = NA
+    }else{
+      list_2 = return_discordant_coordinates(f2, subset_table_ls[[2]])  
+    }
+      return(dplyr::bind_rows(list_1, list_2))
+  }else{
+     list_1 = return_discordant_coordinates(f1, subset_table_ls[[1]])
+     return(list_1)
+  }
+}
+```
+
+## Loop over all entries
+```{r}
+complete_list = list()
+
+for (i in seq_along(preps)){
+  snv_path_1 = as.character(preps[i])
+  #f_total = dplyr::bind_rows(f1, f2)
+  complete_table = snv_read(snv_path_1)
+  complete_list[[i]] = complete_table
+}
+```
+
+## Add variant metrics
+```{r, include=FALSE}
+tifs = lapply(preps, read_input_tsv)
+```
+
+##  
+```{r}
+complete_tbl = dplyr::bind_rows(complete_list)
+complete_table = add_coordinates(complete_tbl)
+param_df = extract_parameters_from_dirname(complete_table$name)
+comp_tbl = dplyr::left_join(complete_table, param_df) %>% dplyr::distinct()
+
+```
+
+
+```{r}
+# detailed exports
+compl = dplyr::left_join(complete_table, dplyr::bind_rows(tifs),by = c('uid','name'))
+readr::write_tsv(compl, paste0(diroi,"/Complete_variant_list_filename.tsv"))
+
+count_variants = dplyr::group_by(compl,uid) %>%
+  dplyr::count(sort = TRUE) %>%
+  dplyr::filter(n>1)
+
+variants_parameters = dplyr::left_join(count_variants, compl) %>%
+  dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus,homopolymer_length:coverage, pcr_id,Bno )
+
+readr::write_tsv(count_variants, 'Counted_variants.tsv')
+readr::write_tsv(variants_parameters, 'variants_parameters.tsv')
+```
