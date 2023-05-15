@@ -168,6 +168,6 @@ count_variants = dplyr::group_by(compl,uid) %>%
 variants_parameters = dplyr::left_join(count_variants, compl) %>%
   dplyr::select(chr, start, end, gene,coding, amino_acid_change, locus,homopolymer_length:coverage, pcr_id,Bno )
 
-readr::write_tsv(count_variants, 'Counted_variants.tsv')
-readr::write_tsv(variants_parameters, 'variants_parameters.tsv')
+readr::write_tsv(count_variants, paste0(diroi,"/Counted_variants.tsv"))
+readr::write_tsv(variants_parameters, paste0(diroi,"/variants_parameters.tsv"))
 ```
